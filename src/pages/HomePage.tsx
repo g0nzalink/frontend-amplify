@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import PetCard from '../components/PetCard'
-import { listAdoptedPets } from '../services/api'
+import { listPets } from '../services/api'
 import { PetResponse } from '../types'
 
 export default function HomePage() {
@@ -9,27 +9,22 @@ export default function HomePage() {
 
   useEffect(() => {
     let mounted = true
-    listAdoptedPets()
-      .then((data) => {
-        if (mounted) setPets(data)
-      })
+    listPets()  // Puedes pasar filtros si quieres: especie, minEdad, etc
+      .then((data) => { if (mounted) setPets(data) })
       .catch(console.error)
       .finally(() => mounted && setLoading(false))
+
     return () => { mounted = false }
   }, [])
 
   return (
     <div className="container">
-      <h2>Adoptadas</h2>
-      {loading ? (
-        <p>Cargando...</p>
-      ) : pets.length === 0 ? (
-        <p>No hay mascotas adoptadas aún</p>
+      <h2>Mascotas disponibles</h2>
+      {loading ? <p>Cargando...</p> : pets.length === 0 ? (
+        <p>No hay mascotas disponibles</p>
       ) : (
         <div className="pet-grid">
-          {pets.map((p) => (
-            <PetCard key={p.id} pet={p} />
-          ))}
+          {pets.map(p => <PetCard key={p.id} pet={p} />)}
         </div>
       )}
     </div>

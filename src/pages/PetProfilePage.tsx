@@ -1,37 +1,44 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPet } from '../services/api'
+import { PetResponse } from '../types'
 
 export default function PetProfilePage() {
   const { id } = useParams<{ id: string }>()
-  const [data, setData] = useState<any>(null)
+  const [pet, setPet] = useState<PetResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!id) return
-    getPet(id)
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    getPet(id).then(setPet).catch(console.error).finally(() => setLoading(false))
   }, [id])
 
   if (loading) return <div className="container">Cargando...</div>
-  if (!data) return <div className="container">No encontrado</div>
+  if (!pet) return <div className="container">No encontrado</div>
 
   return (
     <div className="container">
-      <h2>{data.mascota.name}</h2>
+      <h2>{pet.nombre}</h2>
       <div className="card">
         <h3>Información</h3>
-        <p>Especie: {data.mascota.species}</p>
-        <p>Raza: {data.mascota.breed}</p>
-        <p>Estado: {data.mascota.adoption_status?.state ?? 'desconocido'}</p>
+        <p>Especie: {pet.especie}</p>
+        <p>Raza: {pet.raza}</p>
+        <p>Edad: {pet.edad}</p>
+        <p>Centro: {pet.centro_adopcion.nombre} ({pet.centro_adopcion.ciudad})</p>
+        <p>Estado de adopción: {pet.estado_adopcion.estado}</p>
       </div>
+
       <div style={{ marginTop: 12 }} className="card">
-        <h3>Historia</h3>
-        <pre style={{ whiteSpace: 'pre-wrap' }}>
-          {JSON.stringify(data.historia, null, 2)}
-        </pre>
+        <h3>Vacunas</h3>
+        {pet.vacunas.length === 0 ? (
+          <p>No tiene vacunas registradas</p>
+        ) : (
+          <ul>
+            {pet.vacunas.map(v => (
+              <li key={v.id}>{v.tipo} - {v.fecha}</li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

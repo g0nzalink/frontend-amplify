@@ -1,35 +1,34 @@
 export type UUID = string
 
+export interface CentroAdopcion {
+  id: UUID
+  nombre: string
+  direccion: string
+  ciudad: string
+  lat: number
+  lon: number
+}
+
+export interface Vacuna {
+  id: UUID
+  tipo: string
+  fecha: string
+}
+
+export interface EstadoAdopcion {
+  id: UUID
+  estado: 'disponible' | 'en_proceso' | 'adoptada'
+  fecha_actualizacion: string
+}
 
 export interface PetResponse {
-id: UUID
-name: string
-species: string
-breed: string
-birth_date: string
-adoption_center_id: UUID
-image_url?: string | null
-created_at: string
-}
-
-
-export interface ApplicationView {
-id: UUID
-userId: UUID
-petId: UUID
-requestDate: string
-status: string
-statusDate: string
-message: string
-}
-
-
-export interface HistoryResponse {
-id: string
-pet_id: UUID
-history: { date: string; event: string }[]
-images: string[]
-details?: string
-user_id?: string
-meta?: Record<string, any>
+  id: UUID
+  nombre: string
+  especie: string
+  raza: string
+  edad: number
+  centro_adopcion: CentroAdopcion
+  estado_adopcion: EstadoAdopcion
+  vacunas: Vacuna[]
+  created_at: string
 }

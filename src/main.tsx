@@ -5,6 +5,7 @@ import App from './App'
 import HomePage from './pages/HomePage'
 import PetProfilePage from './pages/PetProfilePage'
 import { ApiProvider } from './contexts/ApiContext'
+import PetsPage from './pages/PetsPage'
 import './index.css'
 
 
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<App />}>
             <Route index element={<HomePage />} />
             <Route path="pets/:id" element={<PetProfilePage />} />
+            <Route path="/pets" element={<PetsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
