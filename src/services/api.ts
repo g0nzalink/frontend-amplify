@@ -13,22 +13,22 @@ const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
 // AXIOS INSTANCES (MS1–MS4)
 // ==========================
 export const apiMS1 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS1_URL || "http://localhost:8001", // 🐾 MS1 - Mascotas
+  baseURL: import.meta.env.VITE_API_MS1_URL || "http:/3.224.109.131:8001", // 🐾 MS1 - Mascotas
   timeout: Number(import.meta.env.VITE_API_TIMEOUT ?? 10000),
 });
 
 export const apiMS2 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS2_URL || "http://localhost:8002", // 📄 MS2 - Solicitudes
+  baseURL: import.meta.env.VITE_API_MS2_URL || "http://3.224.109.131:8002", // 📄 MS2 - Solicitudes
   timeout: Number(import.meta.env.VITE_API_TIMEOUT ?? 10000),
 });
 
 export const apiMS3 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS3_URL || "http://localhost:8003", // 📜 MS3 - Historias / Centros
+  baseURL: import.meta.env.VITE_API_MS3_URL || "http://3.224.109.131:8003", // 📜 MS3 - Historias / Centros
   timeout: Number(import.meta.env.VITE_API_TIMEOUT ?? 10000),
 });
 
 export const apiMS4 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS4_URL || "http://localhost:8004", // 🧩 MS4 - BFF / Integrador
+  baseURL: import.meta.env.VITE_API_MS4_URL || "http://3.224.109.131:8004", // 🧩 MS4 - BFF / Integrador
   timeout: Number(import.meta.env.VITE_API_TIMEOUT ?? 10000),
 });
 
