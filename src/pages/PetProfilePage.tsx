@@ -1,45 +1,34 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { getPet } from '../services/api'
-import { PetResponse } from '../types'
+// PetProfilePage.tsx (ejemplo)
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { getPerfilCompleto } from "../services/api";
+import PetCard from "../components/PetCard";
 
 export default function PetProfilePage() {
-  const { id } = useParams<{ id: string }>()
-  const [pet, setPet] = useState<PetResponse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { id } = useParams<{ id: string }>();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return
-    getPet(id).then(setPet).catch(console.error).finally(() => setLoading(false))
-  }, [id])
+    if (!id) return;
+    getPerfilCompleto(id)
+      .then((res) => setData(res))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  if (loading) return <div className="container">Cargando...</div>
-  if (!pet) return <div className="container">No encontrado</div>
+  if (loading) return <p className="p-8">Cargando...</p>;
+  if (!data?.mascota && !data?.mascota) return <p className="p-8">Mascota no encontrada</p>;
+
+  const pet = data.mascota ?? data.pet ?? data;
 
   return (
-    <div className="container">
-      <h2>{pet.nombre}</h2>
-      <div className="card">
-        <h3>Información</h3>
-        <p>Especie: {pet.especie}</p>
-        <p>Raza: {pet.raza}</p>
-        <p>Edad: {pet.edad}</p>
-        <p>Centro: {pet.centro_adopcion.nombre} ({pet.centro_adopcion.ciudad})</p>
-        <p>Estado de adopción: {pet.estado_adopcion.estado}</p>
-      </div>
-
-      <div style={{ marginTop: 12 }} className="card">
-        <h3>Vacunas</h3>
-        {pet.vacunas.length === 0 ? (
-          <p>No tiene vacunas registradas</p>
-        ) : (
-          <ul>
-            {pet.vacunas.map(v => (
-              <li key={v.id}>{v.tipo} - {v.fecha}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  )
+    <main className="p-8">
+      <h2 className="text-2xl font-bold mb-2">{pet.name ?? pet.nombre}</h2>
+      <p>{pet.species ?? pet.especie} - {pet.breed ?? pet.raza}</p>
+      {/* historia y solicitudes si vienen */}
+      {data.historia && <section>{/* map historia */}</section>}
+      {data.solicitudes && <section>{/* map solicitudes */}</section>}
+    </main>
+  );
 }
