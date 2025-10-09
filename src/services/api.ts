@@ -7,35 +7,27 @@ import axios from "axios";
 const USE_BFF = import.meta.env.VITE_USE_BFF === "true";
 
 const apiMS1 = axios.create({
-  baseURL:
-    import.meta.env.VITE_MS1_URL ||
-    "http://3.224.109.131:8001/ms1",
+  baseURL: import.meta.env.VITE_MS1_URL || "http://3.224.109.131:8001/ms1",
 });
 
 const apiMS2 = axios.create({
-  baseURL:
-    import.meta.env.VITE_MS2_URL ||
-    "http://3.224.109.131:8082/ms2",
+  baseURL: import.meta.env.VITE_MS2_URL || "http://3.224.109.131:8082/ms2",
 });
 
 const apiMS3 = axios.create({
-  baseURL:
-    import.meta.env.VITE_MS3_URL ||
-    "http://3.224.109.131:8003/ms3",
+  baseURL: import.meta.env.VITE_MS3_URL || "http://3.224.109.131:8003/ms3",
 });
 
 const apiMS4 = axios.create({
-  baseURL:
-    import.meta.env.VITE_MS4_URL ||
-    "http://3.224.109.131:8004/ms4",
+  baseURL: import.meta.env.VITE_MS4_URL || "http://3.224.109.131:8004/ms4",
 });
 
 // --- Utilidades ---
 const normalizePaginated = (data: any, params: any) => ({
-  results: data.items ?? data.content ?? [],
+  items: data.items ?? data.content ?? [],
   total: data.total ?? data.totalElements ?? 0,
   page: params.page ?? 0,
-  pageSize: params.size ?? 10,
+  size: params.size ?? 10,
 });
 
 // ================================================================
@@ -44,7 +36,7 @@ const normalizePaginated = (data: any, params: any) => ({
 export async function listPets(params: any = {}) {
   try {
     if (USE_BFF) {
-      console.warn("BFF no expone /pets/paginated, se usa MS1 directamente");
+      console.warn("BFF no expone /pets/petsPag, se usa MS1 directamente");
     }
 
     const res = await apiMS1.get("/pets/petsPag", { params });
