@@ -2,15 +2,22 @@
 import { useEffect, useState } from "react";
 import { listPets } from "../services/api";
 import PetCard from "../components/PetCard";
+import type { Pet } from "../types";
+
+interface PaginatedPets {
+  items: Pet[];
+  total: number;
+  page: number;
+  size: number;
+}
 
 export default function PetsPage() {
-  const [pets, setPets] = useState<any[]>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(9);
+  const [size, setSize] = useState<number>(9);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // filtros opcionales:
   const [especie, setEspecie] = useState("");
   const [minEdad, setMinEdad] = useState<number | undefined>();
   const [maxEdad, setMaxEdad] = useState<number | undefined>();
@@ -20,20 +27,19 @@ export default function PetsPage() {
     let mounted = true;
     setLoading(true);
 
-    const params: Record<string, any> = { page, size: pageSize };
+    const params: Record<string, any> = { page, size };
     if (especie) params.especie = especie;
     if (minEdad !== undefined) params.minEdad = minEdad;
     if (maxEdad !== undefined) params.maxEdad = maxEdad;
     if (centro) params.centro = centro;
 
     listPets(params)
-      .then((res) => {
+      .then((res: PaginatedPets) => {
         if (!mounted) return;
-        // res esperado: { items, total, page, size }
-        setPets(res.items ?? []);
-        setTotal(res.total ?? (res.items ? res.items.length : 0));
-        setPage(res.page ?? page);
-        setPageSize(res.size ?? pageSize);
+        setPets(res.items);
+        setTotal(res.total);
+        setPage(res.page);
+        setSize(res.size);
       })
       .catch((err) => {
         console.error("listPets error:", err);
@@ -47,16 +53,16 @@ export default function PetsPage() {
     return () => {
       mounted = false;
     };
-  }, [page, pageSize, especie, minEdad, maxEdad, centro]);
+  }, [page, size, especie, minEdad, maxEdad, centro]);
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const totalPages = Math.max(1, Math.ceil(total / size));
 
   return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-4">Mascotas disponibles</h2>
 
-      {/* filtros */}
-      <div className="mb-4 flex gap-2 items-center flex-wrap">
+      {/* Filtros */}
+      <div className="mb-4 flex gap-2 items-center">
         <input
           placeholder="Especie"
           value={especie}
@@ -88,8 +94,8 @@ export default function PetsPage() {
           className="border p-2 rounded"
         />
         <select
-          value={pageSize}
-          onChange={(e) => setPageSize(parseInt(e.target.value))}
+          value={size}
+          onChange={(e) => setSize(parseInt(e.target.value))}
           className="border p-2 rounded"
         >
           <option value={6}>6</option>
@@ -110,7 +116,7 @@ export default function PetsPage() {
             ))}
           </div>
 
-          {/* pagination */}
+          {/* Paginación */}
           <div className="mt-6 flex items-center justify-between">
             <div>
               Página {page} de {totalPages} — total {total}

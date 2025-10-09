@@ -1,10 +1,9 @@
+// src/pages/PetProfilePage.tsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getPerfilCompleto } from "../services/api";
-import PetCard from "../components/PetCard";
 import type { Pet } from "../types";
 
-// Tipos para los datos del perfil completo
 interface Historia {
   id: number;
   fecha: string;
@@ -46,15 +45,10 @@ export default function PetProfilePage() {
   return (
     <main className="p-8 space-y-8">
       <section>
-        <h2 className="text-2xl font-bold mb-2">
-          {pet.name ?? pet.nombre}
-        </h2>
-        <p>
-          {pet.species ?? pet.especie} - {pet.breed ?? pet.raza}
-        </p>
+        <h2 className="text-2xl font-bold mb-2">{pet.name ?? pet.nombre}</h2>
+        <p>{pet.species ?? pet.especie} - {pet.breed ?? pet.raza}</p>
       </section>
 
-      {/* Historia */}
       {data.historia && data.historia.length > 0 && (
         <section>
           <h3 className="text-xl font-semibold mb-2">Historia</h3>
@@ -68,7 +62,6 @@ export default function PetProfilePage() {
         </section>
       )}
 
-      {/* Solicitudes */}
       {data.solicitudes && data.solicitudes.length > 0 && (
         <section>
           <h3 className="text-xl font-semibold mb-2">Solicitudes</h3>
