@@ -1,94 +1,65 @@
 // src/services/api.ts
 import axios from "axios";
-import {
-  listPetsMock,
-  getPerfilCompletoMock,
-  listAdoptadasMock,
-  createRequestMock,
-} from "./mockPets";
 
-// ===================================
-// CONFIGURACIÓN GLOBAL
-// ===================================
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
+// ========================
+// ⚙️ Configuración base
+// ========================
 const USE_BFF = import.meta.env.VITE_USE_BFF === "true";
-const TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT ?? 10000);
 
-// ===================================
-// INSTANCIAS AXIOS PARA CADA MS
-// ===================================
-export const apiMS1 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS1_URL || "http://3.224.109.131:8001/ms1",
-  timeout: TIMEOUT,
+const apiMS1 = axios.create({
+  baseURL:
+    import.meta.env.VITE_MS1_URL ||
+    "http://3.224.109.131:8001/ms1",
 });
 
-export const apiMS2 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS2_URL || "http://3.224.109.131:8002/ms2",
-  timeout: TIMEOUT,
+const apiMS2 = axios.create({
+  baseURL:
+    import.meta.env.VITE_MS2_URL ||
+    "http://3.224.109.131:8082/ms2",
 });
 
-export const apiMS3 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS3_URL || "http://3.224.109.131:8003/ms3",
-  timeout: TIMEOUT,
+const apiMS3 = axios.create({
+  baseURL:
+    import.meta.env.VITE_MS3_URL ||
+    "http://3.224.109.131:8003/ms3",
 });
 
-export const apiMS4 = axios.create({
-  baseURL: import.meta.env.VITE_API_MS4_URL || "http://3.224.109.131:8004/ms4",
-  timeout: TIMEOUT,
+const apiMS4 = axios.create({
+  baseURL:
+    import.meta.env.VITE_MS4_URL ||
+    "http://3.224.109.131:8004/ms4",
 });
 
-// ===================================
-// HELPERS
-// ===================================
-const normalizePaginated = (data: any, params?: any) => {
-  if (!data) return { results: [], page: 1, pageSize: 0, total: 0, totalPages: 0 };
-  if (data.results)
-    return {
-      results: data.results,
-      page: data.page ?? params?.page ?? 1,
-      pageSize: data.pageSize ?? params?.pageSize ?? data.results.length,
-      total: data.total ?? data.results.length,
-      totalPages: data.totalPages ?? 1,
-    };
-  if (Array.isArray(data))
-    return {
-      results: data,
-      page: 1,
-      pageSize: data.length,
-      total: data.length,
-      totalPages: 1,
-    };
-  return { results: [], page: 1, pageSize: 0, total: 0, totalPages: 0 };
-};
+// --- Utilidades ---
+const normalizePaginated = (data: any, params: any) => ({
+  items: data.items ?? data.content ?? [],
+  total: data.total ?? data.totalElements ?? 0,
+  page: params.page ?? 0,
+  size: params.size ?? 10,
+});
 
-// ===================================
-// ENDPOINTS
-// ===================================
-
-// 🐾 1. Listar mascotas (con paginación)
-export const listPets = async (params?: Record<string, any>) => {
+// ================================================================
+// 🐾 Mascotas
+// ================================================================
+export async function listPets(params: any) {
   try {
-    if (USE_MOCKS) return normalizePaginated((await listPetsMock(params))?.data, params);
-
     if (USE_BFF) {
-      const res = await apiMS4.get("/pets/paginated", { params });
-      return normalizePaginated(res.data, params);
+      console.warn("BFF no expone /pets/paginated, se usa MS1 directamente");
     }
 
-    // Si no se usa BFF → directo al MS1
-    const res = await apiMS1.get("/pets/paginated", { params });
+    const res = await apiMS1.get("/pets/petsPag", { params });
     return normalizePaginated(res.data, params);
-  } catch (err) {
-    console.error("listPets error:", err);
-    return normalizePaginated([], params);
+  } catch (error) {
+    console.error("Error listPets:", error);
+    throw error;
   }
-};
+}
 
-// 🧩 2. Perfil completo de una mascota
-export const getPerfilCompleto = async (id: string) => {
+// ================================================================
+// 🧩 Perfil completo
+// ================================================================
+export async function getPerfilCompleto(id: number) {
   try {
-    if (USE_MOCKS) return (await getPerfilCompletoMock(id))?.data;
-
     if (USE_BFF) {
       const res = await apiMS4.get(`/mascotas/${id}/perfil_completo`);
       return res.data;
@@ -96,81 +67,75 @@ export const getPerfilCompleto = async (id: string) => {
 
     const pet = (await apiMS1.get(`/pets/${id}`)).data;
     const histories = (await apiMS3.get(`/histories/pet/${id}`)).data;
-    const requests = (await apiMS2.get(`/requests/pet/${id}`)).data;
 
-    return { mascota: pet, historia: histories, solicitudes: requests };
-  } catch (err) {
-    console.error("getPerfilCompleto error:", err);
-    throw err;
+    return { mascota: pet, historia: histories, solicitudes: [] };
+  } catch (error) {
+    console.error("Error getPerfilCompleto:", error);
+    throw error;
   }
-};
+}
 
-// 🐶 3. Mascotas adoptadas
-export const listAdoptadas = async (params?: Record<string, any>) => {
+// ================================================================
+// 🐶 Mascotas adoptadas
+// ================================================================
+export async function listAdoptadas(params: any) {
   try {
-    if (USE_MOCKS) return (await listAdoptadasMock())?.data?.results ?? [];
-
     if (USE_BFF) {
       const res = await apiMS4.get("/adoptadas", { params });
-      return res.data.results ?? res.data;
+      return res.data;
     }
 
-    const res = await apiMS1.get("/pets", { params: { ...params, state: "adopted" } });
-    return res.data.results ?? res.data ?? [];
-  } catch (err) {
-    console.error("listAdoptadas error:", err);
-    return [];
+    const res = await apiMS1.get("/pets/petsPag", { params });
+    const data = res.data.items?.filter((p: any) => p.state === "adopted") ?? [];
+    return data;
+  } catch (error) {
+    console.error("Error listAdoptadas:", error);
+    throw error;
   }
-};
+}
 
-// 📝 4. Crear solicitud de adopción
-export const createRequest = async (body: any) => {
+// ================================================================
+// 📋 Solicitudes
+// ================================================================
+export async function createRequest(body: any) {
   try {
-    if (USE_MOCKS) return (await createRequestMock(body))?.data;
-
     const res = await apiMS2.post("/requests", body);
     return res.data;
-  } catch (err) {
-    console.error("createRequest error:", err);
-    throw err;
+  } catch (error) {
+    console.error("Error createRequest:", error);
+    throw error;
   }
-};
+}
 
-// 📋 5. Solicitudes de un usuario
-export const listRequestsByUser = async (userId: string) => {
+export async function listRequestsByUser(userId: number) {
   try {
-    if (USE_MOCKS) return (await import("./mockRequests")).listRequestsMock();
-
-    const res = await apiMS2.get(`/users/${userId}/requests`);
+    const res = await apiMS2.get(`/${userId}/requests`);
     return res.data;
-  } catch (err) {
-    console.error("listRequestsByUser error:", err);
-    return [];
+  } catch (error) {
+    console.error("Error listRequestsByUser:", error);
+    throw error;
   }
-};
+}
 
-// 📄 6. Detalle de solicitud
-export const getRequestDetail = async (userId: string, applicationId: string) => {
+export async function getRequestDetail(userId: number, applicationId: number) {
   try {
-    if (USE_MOCKS) return (await import("./mockRequests")).getRequestDetailMock(applicationId);
-
-    const res = await apiMS2.get(`/users/${userId}/requests/${applicationId}`);
+    const res = await apiMS2.get(`/${userId}/requests/${applicationId}`);
     return res.data;
-  } catch (err) {
-    console.error("getRequestDetail error:", err);
-    throw err;
+  } catch (error) {
+    console.error("Error getRequestDetail:", error);
+    throw error;
   }
-};
+}
 
-// 🏠 7. Centros de adopción
-export const listCenters = async () => {
+// ================================================================
+// 🏠 Centros
+// ================================================================
+export async function listCenters() {
   try {
-    if (USE_MOCKS) return (await import("./mockCenters")).listCentersMock();
-
     const res = await apiMS1.get("/centers");
     return res.data;
-  } catch (err) {
-    console.error("listCenters error:", err);
-    return [];
+  } catch (error) {
+    console.error("Error listCenters:", error);
+    throw error;
   }
-};
+}
