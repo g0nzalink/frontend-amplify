@@ -50,9 +50,9 @@ export async function listPets(params: any = {}) {
 // ================================================================
 // 🧩 Perfil completo
 // ================================================================
-export async function getPerfilCompleto(id: number | string) {
+export async function getPerfilCompleto(id: string) {
   try {
-    const petId = Number(id);
+    const petId = id;
 
     if (USE_BFF) {
       const res = await apiMS4.get(`/mascotas/${petId}/perfil_completo`);

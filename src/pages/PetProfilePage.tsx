@@ -27,30 +27,40 @@ export default function PetProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<PerfilCompleto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
-    getPerfilCompleto(Number(id))
+    setLoading(true);
+    setError(null);
+
+    getPerfilCompleto(id) // 🔥 se envía como string (UUID), no Number()
       .then((res: PerfilCompleto) => setData(res))
-      .catch((err: unknown) => console.error(err))
+      .catch((err: any) => {
+        console.error("Error getPerfilCompleto:", err);
+        setError("No se pudo cargar el perfil de la mascota.");
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <p className="p-8">Cargando...</p>;
+  if (error) return <p className="p-8 text-red-600">{error}</p>;
   if (!data?.mascota) return <p className="p-8">Mascota no encontrada</p>;
 
   const pet = data.mascota;
 
   return (
     <main className="p-8 space-y-8">
+      {/* Información principal */}
       <section>
         <h2 className="text-2xl font-bold mb-2">{pet.name ?? pet.nombre}</h2>
         <p>
-          {pet.species ?? pet.especie} - {pet.breed ?? pet.raza}
+          {pet.species ?? pet.especie} — {pet.breed ?? pet.raza}
         </p>
       </section>
 
+      {/* Historia */}
       {data.historia && data.historia.length > 0 && (
         <section>
           <h3 className="text-xl font-semibold mb-2">Historia</h3>
@@ -64,6 +74,7 @@ export default function PetProfilePage() {
         </section>
       )}
 
+      {/* Solicitudes */}
       {data.solicitudes && data.solicitudes.length > 0 && (
         <section>
           <h3 className="text-xl font-semibold mb-2">Solicitudes</h3>
