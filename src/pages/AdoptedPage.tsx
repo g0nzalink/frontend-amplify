@@ -8,10 +8,16 @@ export default function AdoptedPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listAdoptadas()
+    listAdoptadas({})
       .then((res: any) => {
-        // si USE_MOCKS=true, devuelve array directamente
-        setPets(Array.isArray(res) ? res : res.results);
+        // Si viene como array o como objeto con items
+        if (Array.isArray(res)) setPets(res);
+        else if (res.items) setPets(res.items);
+        else setPets([]);
+      })
+      .catch((err) => {
+        console.error("Error al listar adoptadas:", err);
+        setPets([]);
       })
       .finally(() => setLoading(false));
   }, []);
