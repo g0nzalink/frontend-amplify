@@ -32,16 +32,16 @@ const apiMS4 = axios.create({
 
 // --- Utilidades ---
 const normalizePaginated = (data: any, params: any) => ({
-  items: data.items ?? data.content ?? [],
+  results: data.items ?? data.content ?? [],
   total: data.total ?? data.totalElements ?? 0,
   page: params.page ?? 0,
-  size: params.size ?? 10,
+  pageSize: params.size ?? 10,
 });
 
 // ================================================================
 // 🐾 Mascotas
 // ================================================================
-export async function listPets(params: any) {
+export async function listPets(params: any = {}) {
   try {
     if (USE_BFF) {
       console.warn("BFF no expone /pets/paginated, se usa MS1 directamente");
@@ -58,15 +58,17 @@ export async function listPets(params: any) {
 // ================================================================
 // 🧩 Perfil completo
 // ================================================================
-export async function getPerfilCompleto(id: number) {
+export async function getPerfilCompleto(id: number | string) {
   try {
+    const petId = Number(id);
+
     if (USE_BFF) {
-      const res = await apiMS4.get(`/mascotas/${id}/perfil_completo`);
+      const res = await apiMS4.get(`/mascotas/${petId}/perfil_completo`);
       return res.data;
     }
 
-    const pet = (await apiMS1.get(`/pets/${id}`)).data;
-    const histories = (await apiMS3.get(`/histories/pet/${id}`)).data;
+    const pet = (await apiMS1.get(`/pets/${petId}`)).data;
+    const histories = (await apiMS3.get(`/histories/pet/${petId}`)).data;
 
     return { mascota: pet, historia: histories, solicitudes: [] };
   } catch (error) {
@@ -78,7 +80,7 @@ export async function getPerfilCompleto(id: number) {
 // ================================================================
 // 🐶 Mascotas adoptadas
 // ================================================================
-export async function listAdoptadas(params: any) {
+export async function listAdoptadas(params: any = {}) {
   try {
     if (USE_BFF) {
       const res = await apiMS4.get("/adoptadas", { params });
@@ -86,7 +88,8 @@ export async function listAdoptadas(params: any) {
     }
 
     const res = await apiMS1.get("/pets/petsPag", { params });
-    const data = res.data.items?.filter((p: any) => p.state === "adopted") ?? [];
+    const data =
+      res.data.items?.filter((p: any) => p.state === "adopted") ?? [];
     return data;
   } catch (error) {
     console.error("Error listAdoptadas:", error);
@@ -117,7 +120,10 @@ export async function listRequestsByUser(userId: number) {
   }
 }
 
-export async function getRequestDetail(userId: number, applicationId: number) {
+export async function getRequestDetail(
+  userId: number,
+  applicationId: number
+) {
   try {
     const res = await apiMS2.get(`/${userId}/requests/${applicationId}`);
     return res.data;
