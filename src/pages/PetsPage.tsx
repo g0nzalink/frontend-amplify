@@ -18,16 +18,16 @@ export default function PetsPage() {
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const [especie, setEspecie] = useState("");
+  const [especie, setEspecie] = useState<string>("");
   const [minEdad, setMinEdad] = useState<number | undefined>();
   const [maxEdad, setMaxEdad] = useState<number | undefined>();
-  const [centro, setCentro] = useState("");
+  const [centro, setCentro] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
 
-    const params: Record<string, any> = { page, size };
+    const params: Record<string, string | number | undefined> = { page, size };
     if (especie) params.especie = especie;
     if (minEdad !== undefined) params.minEdad = minEdad;
     if (maxEdad !== undefined) params.maxEdad = maxEdad;
@@ -41,14 +41,16 @@ export default function PetsPage() {
         setPage(res.page);
         setSize(res.size);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error("listPets error:", err);
         if (mounted) {
           setPets([]);
           setTotal(0);
         }
       })
-      .finally(() => mounted && setLoading(false));
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     return () => {
       mounted = false;
@@ -111,7 +113,7 @@ export default function PetsPage() {
       ) : (
         <>
           <div className="grid md:grid-cols-3 gap-6">
-            {pets.map((p) => (
+            {pets.map((p: Pet) => (
               <PetCard key={p.id} pet={p} />
             ))}
           </div>

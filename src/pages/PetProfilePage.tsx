@@ -26,14 +26,14 @@ interface PerfilCompleto {
 export default function PetProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<PerfilCompleto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!id) return;
 
     getPerfilCompleto(Number(id))
-      .then((res) => setData(res))
-      .catch((err) => console.error(err))
+      .then((res: PerfilCompleto) => setData(res))
+      .catch((err: unknown) => console.error(err))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -46,7 +46,9 @@ export default function PetProfilePage() {
     <main className="p-8 space-y-8">
       <section>
         <h2 className="text-2xl font-bold mb-2">{pet.name ?? pet.nombre}</h2>
-        <p>{pet.species ?? pet.especie} - {pet.breed ?? pet.raza}</p>
+        <p>
+          {pet.species ?? pet.especie} - {pet.breed ?? pet.raza}
+        </p>
       </section>
 
       {data.historia && data.historia.length > 0 && (
