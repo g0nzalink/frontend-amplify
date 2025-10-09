@@ -26,7 +26,7 @@ interface PerfilCompleto {
 export default function PetProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<PerfilCompleto | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,9 +35,9 @@ export default function PetProfilePage() {
     setLoading(true);
     setError(null);
 
-    getPerfilCompleto(id) // 🔥 se envía como string (UUID), no Number()
-      .then((res: PerfilCompleto) => setData(res))
-      .catch((err: any) => {
+    getPerfilCompleto(id)
+      .then((res) => setData(res))
+      .catch((err) => {
         console.error("Error getPerfilCompleto:", err);
         setError("No se pudo cargar el perfil de la mascota.");
       })
@@ -54,7 +54,9 @@ export default function PetProfilePage() {
     <main className="p-8 space-y-8">
       {/* Información principal */}
       <section>
-        <h2 className="text-2xl font-bold mb-2">{pet.name ?? pet.nombre}</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          {pet.name ?? pet.nombre}
+        </h2>
         <p>
           {pet.species ?? pet.especie} — {pet.breed ?? pet.raza}
         </p>
@@ -65,7 +67,7 @@ export default function PetProfilePage() {
         <section>
           <h3 className="text-xl font-semibold mb-2">Historia</h3>
           <ul className="list-disc pl-5 space-y-1">
-            {data.historia.map((h: Historia, i: number) => (
+            {data.historia.map((h, i) => (
               <li key={h.id ?? i}>
                 <strong>{h.fecha}:</strong> {h.descripcion}
               </li>
@@ -79,7 +81,7 @@ export default function PetProfilePage() {
         <section>
           <h3 className="text-xl font-semibold mb-2">Solicitudes</h3>
           <ul className="list-disc pl-5 space-y-1">
-            {data.solicitudes.map((s: Solicitud, i: number) => (
+            {data.solicitudes.map((s, i) => (
               <li key={s.id ?? i}>
                 <strong>{s.fecha}:</strong> {s.estado}
                 {s.adoptante && <span> — {s.adoptante}</span>}

@@ -48,21 +48,29 @@ export async function listPets(params: any = {}) {
 }
 
 // ================================================================
-// 🧩 Perfil completo
+// 🧩 Perfil completo (MS4)
 // ================================================================
 export async function getPerfilCompleto(id: string) {
   try {
-    const petId = id;
+    if (!id) throw new Error("El ID de la mascota es requerido");
 
     if (USE_BFF) {
-      const res = await apiMS4.get(`/mascotas/${petId}/perfil_completo`);
+      // ✅ Se envía directamente el UUID al MS4
+      const res = await apiMS4.get(`/mascotas/${id}/perfil_completo`);
       return res.data;
     }
 
-    const pet = (await apiMS1.get(`/pets/${petId}`)).data;
-    const histories = (await apiMS3.get(`/histories/pet/${petId}`)).data;
+    // 🔁 Alternativa: consulta directa a MS1 + MS3 si no se usa BFF
+    const [petRes, histRes] = await Promise.all([
+      apiMS1.get(`/pets/${id}`),
+      apiMS3.get(`/histories/pet/${id}`),
+    ]);
 
-    return { mascota: pet, historia: histories, solicitudes: [] };
+    return {
+      mascota: petRes.data,
+      historia: histRes.data,
+      solicitudes: [],
+    };
   } catch (error) {
     console.error("Error getPerfilCompleto:", error);
     throw error;
@@ -112,10 +120,7 @@ export async function listRequestsByUser(userId: number) {
   }
 }
 
-export async function getRequestDetail(
-  userId: number,
-  applicationId: number
-) {
+export async function getRequestDetail(userId: number, applicationId: number) {
   try {
     const res = await apiMS2.get(`/${userId}/requests/${applicationId}`);
     return res.data;
