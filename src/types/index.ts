@@ -43,6 +43,13 @@ export interface Pet {
   [k: string]: any;
 }
 
+export interface PaginatedPets {
+  items: Pet[];
+  total: number;
+  page: number;
+  size: number;
+}
+
 export interface HistoryItem {
   id: UUID;
   petId?: UUID;

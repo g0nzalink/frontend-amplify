@@ -4,11 +4,42 @@ import { listPets } from "../services/api";
 import PetCard from "../components/PetCard";
 import type { Pet } from "../types";
 
-interface PaginatedPets {
+interface PaginatedPetsItems {
   items: Pet[];
   total: number;
   page: number;
   size: number;
+}
+
+interface PaginatedPetsResults {
+  results: Pet[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/**
+ * Guard de tipos para detectar la forma { items, total, page, size }
+ */
+function isItemsResponse(x: unknown): x is PaginatedPetsItems {
+  return (
+    x !== null &&
+    typeof x === "object" &&
+    "items" in x &&
+    Array.isArray((x as { items?: unknown }).items)
+  );
+}
+
+/**
+ * Guard de tipos para detectar la forma { results, total, page, pageSize }
+ */
+function isResultsResponse(x: unknown): x is PaginatedPetsResults {
+  return (
+    x !== null &&
+    typeof x === "object" &&
+    "results" in x &&
+    Array.isArray((x as { results?: unknown }).results)
+  );
 }
 
 export default function PetsPage() {
@@ -33,24 +64,41 @@ export default function PetsPage() {
     if (maxEdad !== undefined) params.maxEdad = maxEdad;
     if (centro) params.centro = centro;
 
-    listPets(params)
-      .then((res: PaginatedPets) => {
+    const fetchData = async (): Promise<void> => {
+      try {
+        // forzamos el resultado a unknown para poder aplicar los type-guards
+        const raw = (await listPets(params)) as unknown;
+
         if (!mounted) return;
-        setPets(res.items);
-        setTotal(res.total);
-        setPage(res.page);
-        setSize(res.size);
-      })
-      .catch((err: unknown) => {
+
+        if (isItemsResponse(raw)) {
+          setPets(raw.items);
+          setTotal(raw.total);
+          setPage(raw.page);
+          setSize(raw.size);
+        } else if (isResultsResponse(raw)) {
+          // compatibilidad con la forma antigua
+          setPets(raw.results);
+          setTotal(raw.total);
+          setPage(raw.page);
+          setSize(raw.pageSize);
+        } else {
+          // formato inesperado
+          setPets([]);
+          setTotal(0);
+        }
+      } catch (err) {
         console.error("listPets error:", err);
         if (mounted) {
           setPets([]);
           setTotal(0);
         }
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
 
     return () => {
       mounted = false;
@@ -63,8 +111,8 @@ export default function PetsPage() {
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-4">Mascotas disponibles</h2>
 
-      {/* Filtros */}
-      <div className="mb-4 flex gap-2 items-center">
+      {/* filtros */}
+      <div className="mb-4 flex gap-2 items-center flex-wrap">
         <input
           placeholder="Especie"
           value={especie}
@@ -76,7 +124,7 @@ export default function PetsPage() {
           placeholder="Edad min"
           value={minEdad ?? ""}
           onChange={(e) =>
-            setMinEdad(e.target.value ? parseInt(e.target.value) : undefined)
+            setMinEdad(e.target.value ? parseInt(e.target.value, 10) : undefined)
           }
           className="border p-2 rounded"
         />
@@ -85,7 +133,7 @@ export default function PetsPage() {
           placeholder="Edad max"
           value={maxEdad ?? ""}
           onChange={(e) =>
-            setMaxEdad(e.target.value ? parseInt(e.target.value) : undefined)
+            setMaxEdad(e.target.value ? parseInt(e.target.value, 10) : undefined)
           }
           className="border p-2 rounded"
         />
@@ -97,7 +145,7 @@ export default function PetsPage() {
         />
         <select
           value={size}
-          onChange={(e) => setSize(parseInt(e.target.value))}
+          onChange={(e) => setSize(parseInt(e.target.value, 10))}
           className="border p-2 rounded"
         >
           <option value={6}>6</option>
@@ -113,7 +161,7 @@ export default function PetsPage() {
       ) : (
         <>
           <div className="grid md:grid-cols-3 gap-6">
-            {pets.map((p: Pet) => (
+            {pets.map((p) => (
               <PetCard key={p.id} pet={p} />
             ))}
           </div>
